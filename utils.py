@@ -25,7 +25,7 @@ test_incorrect_pred = {'images': [], 'ground_truths': [], 'predicted_vals': []}
 def GetCorrectPredCount(pPrediction, pLabels):
   return pPrediction.argmax(dim=1).eq(pLabels).sum().item()
 
-def train(model, device, train_loader, optimizer, scheduler, criterion):
+def train(model, device, train_loader, optimizer, scheduler, criterion, epoch):
   model.train()
   pbar = tqdm(train_loader)
 
