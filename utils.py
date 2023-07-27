@@ -66,10 +66,6 @@ def train(model, device, train_loader, optimizer, scheduler, criterion, epoch):
     correct += pred.eq(target.view_as(pred)).sum().item()
     processed += len(data)
     
-    
-    correct += GetCorrectPredCount(pred, target)
-    processed += len(data)
-    
     pbar.set_description(desc= f'Loss={loss.item()} Batch_id={batch_idx} Accuracy={100*correct/processed:0.2f}')
 
     pbar.set_description(desc= f'Train: Loss={loss.item():0.4f} Batch_id={batch_idx} Accuracy={100*correct/processed:0.2f}')
@@ -88,9 +84,10 @@ def test(model, device, test_loader,  criterion ):
             data, target = data.to(device), target.to(device)
 
             output = model(data)
-            test_loss += criterion(output, target, reduction='sum').item()  # sum up batch loss
+            test_loss += criterion(output, target).item()  # sum up batch loss
 
-            correct += GetCorrectPredCount(output, target)
+            pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+            correct += pred.eq(target.view_as(pred)).sum().item()
 
 
     test_loss /= len(test_loader.dataset)
