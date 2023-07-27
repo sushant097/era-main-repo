@@ -3,6 +3,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
+from torch.optim.lr_scheduler import OneCycleLR
 from tqdm import tqdm
 import numpy as np
 
@@ -31,10 +33,10 @@ def train(model, device, train_loader, optimizer, scheduler, criterion):
   correct = 0
   processed = 0
   
-  if sched == 'StepLR':
+  if scheduler == 'StepLR':
     scheduler = StepLR(optimizer, step_size=100, gamma=0.25)
     sched_flag = True
-  elif sched == 'OneCycle':
+  elif scheduler == 'OneCycle':
     scheduler = OneCycleLR(optimizer=optimizer, max_lr=1.05E-03, epochs=epoch, steps_per_epoch=len(train_loader), pct_start=5/epoch, div_factor=10) 
     sched_flag = True
   else:
