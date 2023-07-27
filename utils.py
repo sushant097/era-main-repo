@@ -23,38 +23,59 @@ test_incorrect_pred = {'images': [], 'ground_truths': [], 'predicted_vals': []}
 def GetCorrectPredCount(pPrediction, pLabels):
   return pPrediction.argmax(dim=1).eq(pLabels).sum().item()
 
-def train(model, device, train_loader, optimizer):
+def train(model, device, train_loader, optimizer, scheduler, criterion):
   model.train()
   pbar = tqdm(train_loader)
 
   train_loss = 0
   correct = 0
   processed = 0
+  
+  if sched == 'StepLR':
+    scheduler = StepLR(optimizer, step_size=100, gamma=0.25)
+    sched_flag = True
+  elif sched == 'OneCycle':
+    scheduler = OneCycleLR(optimizer=optimizer, max_lr=1.05E-03, epochs=epoch, steps_per_epoch=len(train_loader), pct_start=5/epoch, div_factor=10) 
+    sched_flag = True
+  else:
+    sched_flag = False
 
   for batch_idx, (data, target) in enumerate(pbar):
     data, target = data.to(device), target.to(device)
     optimizer.zero_grad()
 
     # Predict
-    pred = model(data)
+    y_pred = model(data)
 
     # Calculate loss
-    loss = F.nll_loss(pred, target)
+    loss = criterion(y_pred, target)
     train_loss+=loss.item()
 
     # Backpropagation
     loss.backward()
     optimizer.step()
     
+    if sched_flag:
+      scheduler.step()
+    
+    # Update pbar-tqdm
+
+    pred = y_pred.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+    correct += pred.eq(target.view_as(pred)).sum().item()
+    processed += len(data)
+    
+    
     correct += GetCorrectPredCount(pred, target)
     processed += len(data)
+    
+    pbar.set_description(desc= f'Loss={loss.item()} Batch_id={batch_idx} Accuracy={100*correct/processed:0.2f}')
 
     pbar.set_description(desc= f'Train: Loss={loss.item():0.4f} Batch_id={batch_idx} Accuracy={100*correct/processed:0.2f}')
 
   train_acc.append(100*correct/processed)
   train_losses.append(train_loss/len(train_loader))
 
-def test(model, device, test_loader):
+def test(model, device, test_loader,  criterion ):
     model.eval()
 
     test_loss = 0
@@ -65,7 +86,7 @@ def test(model, device, test_loader):
             data, target = data.to(device), target.to(device)
 
             output = model(data)
-            test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
+            test_loss += criterion(output, target, reduction='sum').item()  # sum up batch loss
 
             correct += GetCorrectPredCount(output, target)
 
