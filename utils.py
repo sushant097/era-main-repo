@@ -62,7 +62,7 @@ def get_incorrrect_predictions(model, loader, device):
                     incorrect.append([image.cpu(), target.cpu(), pred.cpu()])
 
     return incorrect
-    
+
 def GetCorrectPredCount(pPrediction, pLabels):
   return pPrediction.argmax(dim=1).eq(pLabels).sum().item()
 
@@ -292,12 +292,7 @@ def generate_gradcam(misclassified_images, model, target_layers,device):
     gcam.remove_hook()
     return layers, probs, ids
 
-def plot_gradcam(gcam_layers, target_layers, class_names, image_size,predicted, misclassified_images):
-
-    trl, trs = load_data()
-    
-    #show_sample(trs)
-
+def plot_gradcam(gcam_layers, target_layers, class_names, image_size,predicted, misclassified_images, trl, trs):
     mean = list(np.round(trs.data.mean(axis=(0,1,2))/255, 4))
     std = list(np.round(trs.data.std(axis=(0,1,2))/255,4))
 
