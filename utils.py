@@ -309,7 +309,9 @@ def load_data():
                                           shuffle=False, num_workers=2)
     return trainloader, trainset    
   
-def plot_gradcam(gcam_layers, target_layers, class_names, image_size,predicted, misclassified_images, trl, trs):
+def plot_gradcam(gcam_layers, target_layers, class_names, image_size,predicted, misclassified_images):
+    trl, trs = load_data()
+    
     mean = list(np.round(trs.data.mean(axis=(0,1,2))/255, 4))
     std = list(np.round(trs.data.std(axis=(0,1,2))/255,4))
 
