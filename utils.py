@@ -1,6 +1,8 @@
 # CODE BLOCK: 1
 import torch
 import torch.nn as nn
+import torchvision
+from torchvision import datasets, transforms
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
@@ -292,6 +294,21 @@ def generate_gradcam(misclassified_images, model, target_layers,device):
     gcam.remove_hook()
     return layers, probs, ids
 
+def load_data():
+    transform = transforms.Compose(
+      [transforms.ToTensor()])
+
+    trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
+                                          download=True, transform=transform)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
+                                            shuffle=True, num_workers=2)
+
+    testset = torchvision.datasets.CIFAR10(root='./data', train=False,
+                                        download=True, transform=transform)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=4,
+                                          shuffle=False, num_workers=2)
+    return trainloader, trainset    
+  
 def plot_gradcam(gcam_layers, target_layers, class_names, image_size,predicted, misclassified_images, trl, trs):
     mean = list(np.round(trs.data.mean(axis=(0,1,2))/255, 4))
     std = list(np.round(trs.data.std(axis=(0,1,2))/255,4))
